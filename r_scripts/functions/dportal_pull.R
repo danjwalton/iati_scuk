@@ -2,7 +2,7 @@
 #This function will pull IATI data from the d-portal dquery API given a range of parameters
 ###
 
-dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_to=NULL, per.query = 5){
+dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_to=NULL ){
   
   #Ensure required packages are installed and attached
   suppressPackageStartupMessages(lapply(c("data.table", "jsonlite"), require, character.only=T))
@@ -61,6 +61,8 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
     acts <- unique(pre_response$rows$aid)
     
     if(length(acts) > 0){
+      
+      per.query <- 5
       
       acts <- suppressWarnings(split(acts, ceiling(seq(length(acts)/per.query)))) #Pull 'per.query' records each time. Higher numbers (10+) tend to lose records
     
@@ -208,7 +210,7 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
   date_cols <- c("day_start", "day_end", "trans_day", "budget_day_start", "budget_day_end")
   out[, (date_cols) := data.frame(lapply(.SD, function(x) days_to_date(x))), .SDcols = (date_cols)]
   
-  save_params <- paste0(paste0(params$value, collapse = "_"), "_[", Sys.Date(), "]")
+  save_params <- paste0("raw_", paste0(params$value, collapse = "_"), "_[", Sys.Date(), "]")
   save_loc <- paste0("rdatas/", save_params, ".RData" )
   saveRDS(out, save_loc)
   return(save_loc)
