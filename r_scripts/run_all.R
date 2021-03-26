@@ -1,14 +1,14 @@
-#Pull in functions from scripts
-lapply(c("functions/dportal_pull.R", "functions/prettify.R", "functions/sector_fill.R", "functions/analysis.R", "functions/fcdo_portfolio.R"), function(x) source(x, echo = F))
-
 #Install required packages if not already present
 packages <- c("data.table", "jsonlite")
 new.packages <- packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(packages)
-suppressPackageStartupMessages(packages, require, character.only=T)
+suppressPackageStartupMessages(lapply(packages, require, character.only=T))
+
+#Pull in functions from scripts
+lapply(c("functions/dportal_pull.R", "functions/prettify.R", "functions/sector_fill.R", "functions/analysis.R", "functions/fcdo_portfolio.R"), function(x) source(x, echo = F))
 
 ###
-#Run functions below for complete download, parse, and analysis
+#Run sections below for complete download, parse, and analysis
 ###
 
 #FCDO
