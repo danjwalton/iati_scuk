@@ -10,8 +10,6 @@ analysis_tables <- function(dataset_name){
   if(length(new.packages)) install.packages(packages)
   suppressPackageStartupMessages(lapply(packages, require, character.only=T))
   
-  dataset_name <- deparse(substitute(data))
-  
   most_recent <- function(dataset_name, path = "rdatas/"){
     files <- list.files(path, pattern = dataset_name)
     downloads <- grep(paste0(dataset_name, "_[[]....-..-..[]]"), files, value = T)
