@@ -2,7 +2,7 @@
 #Function to 'prettify' the data outputs from d-portal and cast to a nice data table
 ###
 
-prettify <- function(dportal_out, activity_info = T, date_info = F, trans_info = F, budget_info = F, policy_markers = T, extra_info = T){
+prettify <- function(dportal_out, activity_info = T, date_info = F, trans_info = F, budget_info = F, policy_markers = T, extra_info = T, fiscal_year = 1){
   
   #Ensure required packages are installed and attached
   suppressPackageStartupMessages(lapply(c("data.table"), require, character.only=T))
@@ -112,22 +112,37 @@ prettify <- function(dportal_out, activity_info = T, date_info = F, trans_info =
     return(sector_char)
   }
   
+  get_fy <- function(date, fiscal_year){
+    cy <- as.numeric(year(date))
+    cq <- as.numeric(quarter(date))
+    if(is.numeric(fiscal_year)){
+      cy <- ifelse(cq < fiscal_year, paste0(cy - 1, "/", cy), paste0(cy, "/", cy + 1))
+    } else{
+      fy <- cy
+    }
+  }
+  
   #Merge transaction and budget columns which contain the same type of info
   suppressWarnings(dportal_out[, `:=` (
     `Value USD` = max(`Transaction value (USD)`, `Budget value (USD)`, na.rm = T),
     `Value GBP` = max(`Transaction value (GBP)`, `Budget value (GBP)`, na.rm = T),
     `Sector code` = max(top_sector(`Transaction sector`), top_sector(`Budget sector`), na.rm = T),
     `Subsector code` = max(`Transaction sector`, `Budget sector`, na.rm = T),
-    `Recipient code` = max(`Transaction recipient country ISO`, `Budget recipient country code`, `Recipient region code`, na.rm = T),
+    `Recipient code` = ifelse(extra_info, 
+                              max(`Transaction recipient country ISO`, `Budget recipient country code`, `Recipient region code`, na.rm = T),
+                              max(`Transaction recipient country ISO`, `Budget recipient country code`, na.rm = T)),
     `Year` = max(year(`Transaction date`), year(`Budget start date`), na.rm = T),
-    `Quarter` = max(quarter(`Transaction date`), quarter(`Budget start date`), na.rm = T)
+    `Quarter` = max(quarter(`Transaction date`), quarter(`Budget start date`), na.rm = T),
+    `Fiscal year` = ifelse(fiscal_year,
+                           max(get_fy(`Transaction date`, fiscal_year), get_fy(`Budget start date`, fiscal_year), na.rm = T),
+                           max(year(`Transaction date`), year(`Budget start date`), na.rm = T))
   ), by = key])
   
   dportal_out <- merge(dportal_out, sector_codes, all.x = T, by = "Sector code")
   dportal_out <- merge(dportal_out, subsector_codes, all.x = T, by = "Subsector code")
   dportal_out <- merge(dportal_out, country_codes, all.x = T, by = "Recipient code")
   
-  aggregated_cols  <- c("Sector code", "Sector name", "Subsector code", "Subsector name", "Recipient code", "Recipient name", "Year", "Quarter")
+  aggregated_cols  <- c("Sector code", "Sector name", "Subsector code", "Subsector name", "Recipient code", "Recipient name", "Year", "Quarter", "Fiscal year")
   
   select_cols <- function(col_names, data = dportal_out){
     selected <- grep(paste0(col_names, collapse = "|"), names(data), value = T)
@@ -137,7 +152,7 @@ prettify <- function(dportal_out, activity_info = T, date_info = F, trans_info =
   #Create a list of our selected columns present in the data
   cast_cols <- c(if(activity_info) select_cols(activity_info_cols$V2),
                  if(date_info) select_cols(date_info_cols$V2),
-                 aggregated_cols,
+                 select_cols(aggregated_cols),
                  if(trans_info) select_cols(trans_info_cols$V2),
                  if(budget_info) select_cols(budget_info_cols$V2),
                  if(policy_markers) select_cols(policy_cols$V2),

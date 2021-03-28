@@ -2,7 +2,7 @@
 #This function will pull IATI data from the d-portal dquery API given a range of parameters
 ###
 
-dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_to=NULL ){
+dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_to=NULL  ,  policy_markers=T  ,  extra_info=T ){
   
   #Ensure required packages are installed and attached
   suppressPackageStartupMessages(lapply(c("data.table", "jsonlite"), require, character.only=T))
@@ -106,10 +106,12 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
     
   }
   
-  message("Transactions:")
+  steps <- 2 + ifelse(extra_info, 2, 0)
+  
+  message(paste0("Step 1 of ", steps, " - downloading transactions:"))
   transactions <- data_pull(trans_url, params.flat, progress = T)
   
-  message("Budgets:")
+  message(paste0("Step 2 of ", steps, " - downloading budgets:"))
   budgets <- data_pull(budget_url, params.flat, progress = T)
   
   budgets$trans_code <- "B"
@@ -119,41 +121,44 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
   
   out <- rbind(transactions, budgets, fill = T)
   
-  #Download policy marker info
-  policies <- data_pull(policy_url, params.flat, progress = F, block = T)
-  
-  #Function to split the policy marker info and cast to wide data
-  split_policies <- function(policies){
+  if(policy_markers){
     
+    #Download policy marker info
+    policies <- data_pull(policy_url, params.flat, progress = F, block = T)
+    
+    #Function to split the policy marker info and cast to wide data
+    split_policies <- function(policies){
+      
+      if(!is.null(policies)){
+        
+        policies <- unique(policies)
+        
+        policy_key <- data.table(policy_code = seq(1,12), policy_name = c("gender","environment","good_governance","trade_development","biological_diversity","climate_mitigation","climate_adaptation","desertification","rmnch","drr","disability","nutrition"))
+        
+        policies <- policies[, (tstrsplit(policy_code, "_")), by = aid]
+        setnames(policies, c("base_aid", "targeting", "policy_code"))
+        
+        policies$policy_code <- policy_key$policy_name[match(unlist(policies$policy_code), policy_key$policy_code)]
+        
+        policies <- dcast(policies, base_aid ~ policy_code, value.var = "targeting")
+        
+        return(policies)
+        
+      }
+    }
+    
+    policies <- split_policies(policies)
+    
+    #Join policy markers to activity data based on activity root
     if(!is.null(policies)){
       
-      policies <- unique(policies)
-      
-      policy_key <- data.table(policy_code = seq(1,12), policy_name = c("gender","environment","good_governance","trade_development","biological_diversity","climate_mitigation","climate_adaptation","desertification","rmnch","drr","disability","nutrition"))
-      
-      policies <- policies[, (tstrsplit(policy_code, "_")), by = aid]
-      setnames(policies, c("base_aid", "targeting", "policy_code"))
-      
-      policies$policy_code <- policy_key$policy_name[match(unlist(policies$policy_code), policy_key$policy_code)]
-      
-      policies <- dcast(policies, base_aid ~ policy_code, value.var = "targeting")
-      
-      return(policies)
+      out[, base_aid := ifelse(grepl("-1..$", aid), substr(aid, 0, nchar(aid)-4), aid)]
+      out <- merge(out, policies, by = "base_aid", all.x = T)
+      out[, base_aid := NULL]
       
     }
   }
-  
-  policies <- split_policies(policies)
-  
-  #Join policy markers to activity data based on activity root
-  if(!is.null(policies)){
-    
-    out[, base_aid := ifelse(grepl("-1..$", aid), substr(aid, 0, nchar(aid)-4), aid)]
-    out <- merge(out, policies, by = "base_aid", all.x = T)
-    out[, base_aid := NULL]
-    
-  }
-  
+
   #Download humanitarian flag info
   humanitarian <- data_pull(hum_url, params.flat, progress = F, block = T)
   
@@ -163,44 +168,49 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
     out <- merge(out, humanitarian, by = "aid", all.x = T)
   }
   
-  #Get extra info from JML
-  message("Extra info:")
-  extra <- data_pull(jml_url, params.flat, progress = T)
-  
-  #Function to grab extra data from nested JML
-  get_extra_data <- function(extra){
+  if(extra_info){
+    #Get extra info from JML
+    message(paste0("Step 3 of ", steps, " - downloading extra info:"))
+    extra <- data_pull(jml_url, params.flat, progress = T)
     
-    message("Parsing extra info...")
-    
-    pb <- txtProgressBar(0, nrow(extra), style = 3)
-    extra_list <- list()
-    for(i in 1:nrow(extra)){
+    #Function to grab extra data from nested JML
+    get_extra_data <- function(extra){
       
-      if(grepl("default-aid-type", extra$jml[i])){
-        extra_temp <- fromJSON(extra$jml[i])$`1`
-        extra_temp <- tail(setnames(data.table(t(extra_temp)), extra_temp$`0`)[], -1)
+      message(paste0("Step 4 of ", steps, " - parsing extra info:"))
+      
+      pb <- txtProgressBar(0, nrow(extra), style = 3)
+      extra_list <- list()
+      for(i in 1:nrow(extra)){
         
-        keep <- c("iati-identifier", "recipient-region", "default-finance-type", "default-aid-type", "default-tied-status", "capital-spend")
-        
-        extra_temp <- extra_temp[, names(extra_temp) %in% keep, with = F]
-        extra_temp[extra_temp == "NULL"] <- NA_character_
-        extra_temp <- extra_temp[, lapply(.SD, function(x) max(as.character(x), na.rm = T))]
-        
-        extra_list[[i]] <- extra_temp
-        setTxtProgressBar(pb, i)
+        if(grepl("default-aid-type", extra$jml[i])){
+          extra_temp <- fromJSON(extra$jml[i])$`1`
+          extra_temp <- setnames(data.table(t(extra_temp)), extra_temp$`0`)[]
+          extra_temp$`iati-identifier` <- extra_temp$`iati-identifier`[2]
+          extra_temp <- tail(extra_temp, -2)
+          
+          keep <- c("iati-identifier", "recipient-region", "default-finance-type", "default-aid-type", "default-tied-status", "capital-spend")
+          
+          extra_temp <- extra_temp[, names(extra_temp) %in% keep, with = F]
+          extra_temp[extra_temp == "NULL"] <- NA_character_
+          extra_temp <- extra_temp[, lapply(.SD, function(x) max(as.character(x), na.rm = T))]
+          
+          extra_list[[i]] <- extra_temp
+          setTxtProgressBar(pb, i)
+        }
       }
+      
+      close(pb)
+      extra_data <- rbindlist(extra_list, fill = T)
+      names(extra_data) <- make.unique(names(extra_data))
+      return(extra_data)
+      
     }
     
-    close(pb)
-    extra_data <- rbindlist(extra_list, fill = T)
-    names(extra_data) <- make.unique(names(extra_data))
-    return(extra_data)
+    extra_data <- get_extra_data(extra)
+    
+    out <- merge(out, extra_data, by.x = "aid", by.y = "iati-identifier", all.x = T)
     
   }
-  
-  extra_data <- get_extra_data(extra)
-  
-  out <- merge(out, extra_data, by.x = "aid", by.y = "iati-identifier", all.x = T)
   
   #Function to convert IATI day codes to readable dates
   days_to_date <- function(days, origin = as.Date("1970-01-01")){

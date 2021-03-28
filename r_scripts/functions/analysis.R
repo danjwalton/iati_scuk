@@ -2,7 +2,7 @@
 #Function to produce required analysis outputs from prettified data
 ###
 
-analysis_tables <- function(dataset_name){
+analysis_tables <- function(dataset_name, fiscal_year = F){
   
   #Install required packages if not already present
   packages <- c("data.table", "jsonlite")
@@ -34,43 +34,71 @@ analysis_tables <- function(dataset_name){
     fwrite(x, paste0(path, dataset_name, "_", dataname, ".csv"))
   }
   
-  if(!is.null(data)){
+  if(fiscal_year){
+    data[, `:=` (Year = `Fiscal year`)]
+  }
   
-    sector_trends_budget <- dcast(data, `Sector name` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(sector_trends_budget)
+  if(!is.null(data)){
     
-    sector_trends_spend <- dcast(data, `Sector name` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(sector_trends_spend)
+    tryCatch({
+      sector_trends_budget <- dcast(data, `Sector name` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(sector_trends_budget)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
     
-    recipient_trends_budget <- dcast(data, `Recipient name` + `Recipient code` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(recipient_trends_budget)
+    tryCatch({
+      sector_trends_spend <- dcast(data, `Sector name` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(sector_trends_spend)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
     
-    recipient_trends_spend <- dcast(data, `Recipient name` + `Recipient code` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(recipient_trends_spend)
+    tryCatch({
+      recipient_trends_budget <- dcast(data, `Recipient name` + `Recipient code` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(recipient_trends_budget)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
     
-    health_sectors_trends_budget <- dcast(data[`Sector name` == "Health"], `Subsector name` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(health_sectors_trends_budget)
+    tryCatch({
+      recipient_trends_spend <- dcast(data, `Recipient name` + `Recipient code` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(recipient_trends_spend)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
     
-    health_sectors_trends_spend <- dcast(data[`Sector name` == "Health"], `Subsector name` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(health_sectors_trends_spend)
-   
-    education_sectors_trends_budget <- dcast(data[`Sector name` == "Education"], `Subsector name` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(education_sectors_trends_budget)
+    tryCatch({
+      health_sectors_trends_budget <- dcast(data[`Sector name` == "Health"], `Subsector name` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(health_sectors_trends_budget)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
     
-    education_sectors_trends_spend <- dcast(data[`Sector name` == "Education"], `Subsector name` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(education_sectors_trends_spend)
-     
-    education_gender_trends_budget <- dcast(data[`Sector name` == "Education"], `Gender marker` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(education_gender_trends_budget)
+    tryCatch({
+      health_sectors_trends_spend <- dcast(data[`Sector name` == "Health"], `Subsector name` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(health_sectors_trends_spend)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
     
-    education_gender_trends_spend <- dcast(data[`Sector name` == "Education"], `Gender marker` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(education_gender_trends_spend)
+    tryCatch({
+      education_sectors_trends_budget <- dcast(data[`Sector name` == "Education"], `Subsector name` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(education_sectors_trends_budget)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
     
-    nutrition_recipients_trends_budget <- dcast(data[`Subsector name` == "Basic nutrition"], `Recipient name` + `Recipient code` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(nutrition_recipients_trends_budget)
+    tryCatch({
+      education_sectors_trends_spend <- dcast(data[`Sector name` == "Education"], `Subsector name` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(education_sectors_trends_spend)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
     
-    nutrition_recipients_trends_spend <- dcast(data[`Subsector name` == "Basic nutrition"], `Recipient name` + `Recipient code` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
-    ffwrite(nutrition_recipients_trends_spend)
+    tryCatch({
+      education_gender_trends_budget <- dcast(data[`Sector name` == "Education"], `Gender marker` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(education_gender_trends_budget)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
+    
+    tryCatch({
+      education_gender_trends_spend <- dcast(data[`Sector name` == "Education"], `Gender marker` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(education_gender_trends_spend)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
+    
+    tryCatch({
+      nutrition_recipients_trends_budget <- dcast(data[`Subsector name` == "Basic nutrition"], `Recipient name` + `Recipient code` ~ Year , value.var = "Budget", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(nutrition_recipients_trends_budget)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
+    
+    tryCatch({
+      nutrition_recipients_trends_spend <- dcast(data[`Subsector name` == "Basic nutrition"], `Recipient name` + `Recipient code` ~ Year , value.var = "Total spend", fun.aggregate = function(x) sum(x, na.rm = T))
+      ffwrite(nutrition_recipients_trends_spend)
+    }, error = function(e) warning("Analysis table could not be produced due to missing variable(s).", call. = F, immediate. = T))
     
   }
   
