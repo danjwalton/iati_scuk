@@ -25,7 +25,7 @@ new_download(
   extra_info = T, #Option to download extra info with the data (aid type, flow type, regional transaction codes etc.) (T/F)
   sector_fill = T, #Option to fill top-level sector codes based on a keyword search of activities (T/F)
   fcdo_portfolio = T, #Option to specify previous portfolio - applicable to FCDO only (T/F)
-  fiscal_year = 2 #Specify the quarter when a fiscal year should start (F,2,3,4)
+  fiscal_year = 2 #Specify the quarter when a fiscal year should start, or F (F,2,3,4)
 )
 
 #Analysis - run once a download is complete. This will automatically choose the most recent available download to analyse.
@@ -45,8 +45,7 @@ new_download(
   date_to = NULL,
   policy_markers = T,
   extra_info = T,
-  sector_fill = T,
-  fiscal_year = F
+  sector_fill = T
 )
 
 #Analysis
@@ -66,9 +65,7 @@ new_download(
   date_to = NULL,
   policy_markers = T,
   extra_info = T,
-  sector_fill = T,
-  fcdo_portfolio = F,
-  fiscal_year = F
+  sector_fill = T
 )
 
 #Analysis
