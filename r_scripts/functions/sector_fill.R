@@ -10,8 +10,8 @@ sector_fill <- function(data, narrative_cols= c("Project title", "Project descri
   #Function to fill missing sector info
   keyword_sector_fill <- function(data, keywords, sector_code_fill, sector_name_fill){
     
-    data_na <-  data[is.na(get(sector_code_col))]
-    data_n_na <- data[!is.na(get(sector_code_col))]
+    data_na <-  data[is.na(get(sector_name_col))]
+    data_n_na <- data[!is.na(get(sector_name_col))]
     
     data_na[grepl(paste0(keywords, collapse = "|"), apply(data_na[,..narrative_cols],1,  paste, collapse = ""))]$`Sector name` <- sector_name_fill
     data_na[grepl(paste0(keywords, collapse = "|"), apply(data_na[,..narrative_cols],1,  paste, collapse = ""))]$`Sector code` <- sector_code_fill

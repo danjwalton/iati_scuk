@@ -28,6 +28,11 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
   base_select <- "aid,reporting,reporting_ref,funder_ref,title,slug,day_start,day_end,description"
   
   #Transactions query url and transaction columns
+  acts <- "from=act&orderby=1-&"
+  act_select <- "trans_day,trans_usd,trans_gbp,trans_code,trans_country,trans_sector,trans_id"
+  act_url <- paste0(dquery_url, trans, "select=", base_select, ",", trans_select, "&")
+  
+  #Transactions query url and transaction columns
   trans <- "from=act,trans&orderby=1-&"
   trans_select <- "trans_day,trans_usd,trans_gbp,trans_code,trans_country,trans_sector,trans_id"
   trans_url <- paste0(dquery_url, trans, "select=", base_select, ",", trans_select, "&")

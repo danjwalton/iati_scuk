@@ -17,12 +17,18 @@ new_download <- function(name = "fcdo_all", reporting_ref = "GB-GOV-1", date_fro
   
   download <- prettify(download, policy_markers = policy_markers, extra_info = extra_info, fiscal_year = fiscal_year)
   
-  if(sector_fill) download <- sector_fill(download)
+  output <- paste0("outputs/", name, "_[", Sys.Date(), "].csv")
+  output2 <- paste0("rdatas/", name, "_[", Sys.Date(), "].RData")
+  
+  fwrite(download, output)
+  saveRDS(download, output2)
   
   if(fcdo_portfolio) download <- portfolio(download)
   
-  output <- paste0("outputs/", name, "_[", Sys.Date(), "].csv")
-  output2 <- paste0("rdatas/", name, "_[", Sys.Date(), "].RData")
+  if(sector_fill) download <- sector_fill(download)
+  
+  output <- paste0("outputs/", name, "_curated_[", Sys.Date(), "].csv")
+  output2 <- paste0("rdatas/", name, "_curated_[", Sys.Date(), "].RData")
   
   fwrite(download, output)
   saveRDS(download, output2)
