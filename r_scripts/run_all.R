@@ -1,8 +1,11 @@
 #Install required packages if not already present
-packages <- c("data.table", "jsonlite")
+packages <- c("data.table", "jsonlite","rstudioapi")
 new.packages <- packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(packages)
 suppressPackageStartupMessages(lapply(packages, require, character.only=T))
+
+#Set working directory
+setwd(dirname(getActiveDocumentContext()$path))
 
 #Pull in functions from scripts
 lapply(c("functions/download_all.R", "functions/analysis.R"), function(x) source(x, echo = F))
