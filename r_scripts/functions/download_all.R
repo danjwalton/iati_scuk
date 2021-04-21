@@ -25,7 +25,7 @@ new_download <- function(name = "fcdo_all", reporting_ref = "GB-GOV-1", date_fro
   
   if(fcdo_portfolio) download <- portfolio(download)
   
-  if(sector_fill) download <- sector_fill(download)
+  if(sector_fill) download <- sector_fill_fun(download)
   
   output <- paste0("outputs/", name, "_curated_[", Sys.Date(), "].csv")
   output2 <- paste0("rdatas/", name, "_curated_[", Sys.Date(), "].RData")
