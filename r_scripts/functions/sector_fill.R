@@ -2,7 +2,7 @@
 #This function fills missing top-level sector codes based on a keyword search of project titles and descriptions
 ###
 
-sector_fill <- function(data, narrative_cols= c("Project title", "Project description"), sector_code_col = "Sector code", sector_name_col = "Sector name"){
+sector_fill_fun <- function(data, narrative_cols= c("Project title", "Project description"), sector_code_col = "Sector code", sector_name_col = "Sector name"){
   
   #Ensure required packages are installed and attached
   suppressPackageStartupMessages(lapply(c("data.table"), require, character.only=T))
