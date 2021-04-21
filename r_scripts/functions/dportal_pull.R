@@ -30,7 +30,7 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
   #Transactions query url and transaction columns
   acts <- "from=act&orderby=1-&"
   act_select <- "trans_day,trans_usd,trans_gbp,trans_code,trans_country,trans_sector,trans_id"
-  act_url <- paste0(dquery_url, trans, "select=", base_select, ",", trans_select, "&")
+  act_url <- paste0(dquery_url, acts, "select=", base_select, ",", act_select, "&")
   
   #Transactions query url and transaction columns
   trans <- "from=act,trans&orderby=1-&"
