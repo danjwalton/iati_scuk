@@ -12,7 +12,7 @@ portfolio <- function(fcdo_data){
   )
   
   fcdo_data[, `:=` (slug_code = gsub("fcdo-", "", `Reference dataset`))]
-  fcdo_data <- merge(fcdo_data, slugs, all.x = T)
+  fcdo_data <- merge(fcdo_data, slugs, all.x = T, by = "slug_code")
   fcdo_data[is.na(`Former portfolio`), `Former portfolio` := "DFID"]
   
   fcdo_data[, slug_code := NULL]
