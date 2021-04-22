@@ -33,6 +33,7 @@ new_download(
 
 #Analysis - run once a download is complete. This will automatically choose the most recent available download to analyse.
 analysis_tables("fcdo_all", fiscal_year = T) #Enter the name of the dataset you want to analyse, and whether to use fiscal year (T/F)
+analysis_tables("fcdo_all_curated", fiscal_year = T)
 
 ###
 

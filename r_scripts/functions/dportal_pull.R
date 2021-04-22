@@ -9,12 +9,12 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
   
   #Establish dquery date parameters if provided in function
   if(!is.null(date_from)){
-    day_end_gteq <- as.character(as.Date(date_from))
+    day_end_gteq <- paste0(as.character(as.Date(date_from)), "|day_end=null")
     rm(date_from)
   }
   
   if(!is.null(date_to)){
-    day_start_lteq <- as.character(as.Date(date_to))
+    day_start_lteq <- paste0(as.character(as.Date(date_to)), "|day_start=null")
     rm(date_to)
   }
   
@@ -226,6 +226,7 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
   out[, (date_cols) := data.frame(lapply(.SD, function(x) days_to_date(x))), .SDcols = (date_cols)]
   
   save_params <- paste0("raw_", paste0(params$value, collapse = "_"), "_[", Sys.Date(), "]")
+  save_params <- gsub("[|]day_end=null|[|]day_start=null", "", save_params)
   save_loc <- paste0("rdatas/", save_params, ".RData" )
   saveRDS(out, save_loc)
   return(save_loc)
