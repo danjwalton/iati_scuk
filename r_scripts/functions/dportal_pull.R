@@ -181,30 +181,33 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
     #Function to grab extra data from nested JML
     get_extra_data <- function(extra){
       
-      message(paste0("Step 4 of ", steps, " - parsing extra info:"))
+      message(paste0("Step 4 of ", steps, " - parsing extra info (there will be a pause):"))
       
-      pb <- txtProgressBar(0, nrow(extra), style = 3)
+      pb <- txtProgressBar(0, length(extra), style = 3)
       extra_list <- list()
-      for(i in 1:nrow(extra)){
-        
-        if(grepl("default-aid-type", extra$jml[i])){
-          extra_temp <- data.table(fromJSON(extra$jml[i])$`1`)
+      extra_cols <- c("iati-identifier", "recipient-region", "default-finance-type", "default-aid-type", "default-tied-status", "capital-spend", "participating-org")
+      
+      extra <- apply(extra, 1, fromJSON)
+      
+      for(i in 1:length(extra)){
+        if(any(grepl(paste0(extra_cols, collapse = "|"), extra[[i]]))){
+          #extra_temp <- fromJSON(as.character(extra$jml[i]))$`1`
+          extra_temp <- extra[[i]]$`1`
           keep <- c("0", "1", "ref", "code")
-          extra_temp <- extra_temp[, ..keep]
+          extra_temp <- extra_temp[, names(extra_temp) %in% keep]
+          extra_temp <- data.table(extra_temp)
           extra_temp <- extra_temp[, lapply(.SD, function(x) paste0(unique(x[!is.na(x)]), collapse = ", ")), by = `0`]
           extra_temp <- setnames(data.table(t(extra_temp)), extra_temp$`0`)[]
           extra_temp$`iati-identifier` <- extra_temp$`iati-identifier`[2]
           extra_temp <- tail(extra_temp, -2)
           
-          keep <- c("iati-identifier", "recipient-region", "default-finance-type", "default-aid-type", "default-tied-status", "capital-spend", "participating-org")
-          
-          extra_temp <- extra_temp[, names(extra_temp) %in% keep, with = F]
+          extra_temp <- extra_temp[, names(extra_temp) %in% extra_cols, with = F]
           extra_temp[extra_temp == "NULL"] <- NA_character_
           extra_temp <- extra_temp[, lapply(.SD, function(x) max(as.character(x), na.rm = T))]
-          
-          extra_temp[, setdiff(keep, names(extra_temp)) := ""]
+          extra_temp[, setdiff(extra_cols, names(extra_temp)) := ""]
           
           extra_list[[i]] <- extra_temp
+          rm(extra_temp)
           setTxtProgressBar(pb, i)
         }
       }

@@ -2,7 +2,7 @@
 #Function which combines downloading, prettifying, adding sectors, and portfolio
 ###
 
-new_download <- function(name = "fcdo_all", reporting_ref = "GB-GOV-1", date_from = NULL, date_to = NULL, policy_markers = T, extra_info = T, sector_fill = T, fcdo_portfolio = T, fiscal_year = 1){
+new_download <- function(name = "fcdo_all", reporting_ref = "GB-GOV-1", date_from = NULL, date_to = NULL, policy_markers = T, extra_info = T, sector_fill = T, fcdo_portfolio = F, fiscal_year = 1){
   
   #Install required packages if not already present
   packages <- c("data.table", "jsonlite")
