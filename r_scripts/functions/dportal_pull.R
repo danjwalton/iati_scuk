@@ -183,7 +183,7 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
       
       message(paste0("Step 4 of ", steps, " - parsing extra info (there will be a pause):"))
       
-      pb <- txtProgressBar(0, length(extra), style = 3)
+      pb <- txtProgressBar(0, nrow(extra), style = 3)
       extra_list <- list()
       extra_cols <- c("iati-identifier", "recipient-region", "default-finance-type", "default-aid-type", "default-tied-status", "capital-spend", "participating-org")
       
