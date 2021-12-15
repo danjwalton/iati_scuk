@@ -45,11 +45,12 @@ analysis_tables("fcdo_all_curated", fiscal_year = T)
 new_download(
   name = "world_bank_all",
   reporting_ref = "44000",
-  date_from = NULL,
-  date_to = NULL,
+  date_from = "1999-01-01",
+  date_to = "2021-12-31",
   policy_markers = T,
   extra_info = T,
-  sector_fill = T
+  sector_fill = T,
+  fcdo_portfolio = F
 )
 
 #Analysis
@@ -69,7 +70,8 @@ new_download(
   date_to = NULL,
   policy_markers = T,
   extra_info = T,
-  sector_fill = T
+  sector_fill = T,
+  fcdo_portfolio = F
 )
 
 #Analysis

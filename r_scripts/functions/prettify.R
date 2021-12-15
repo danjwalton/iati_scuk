@@ -86,6 +86,7 @@ prettify <- function(dportal_out, activity_info = T, date_info = F, trans_info =
   
   extra_info_cols <- data.table(t(data.table(
     #Other
+    c("participating-org", "Participating organisation"),
     c("recipient-region", "Recipient region code"),
     c("humanitarian", "Humanitarian flag"),
     c("default-tied-status", "Aid tied status"),
