@@ -17,7 +17,7 @@ prettify <- function(dportal_out, activity_info = T, date_info = F, trans_info =
   sector_codes <- sector_codes[, lapply(.SD, as.character)]
   
   #Country codes
-  country_codes <- fread("https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/csv/en/Country.csv", showProgress = F, encoding = "UTF-8")[, c("code", "name")]
+  country_codes <- fread("https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/csv/en/Country.csv", showProgress = F, encoding = "UTF-8", na.strings = "")[, c("code", "name")]
   region_codes <- fread("https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/csv/en/Region.csv", showProgress = F, encoding = "UTF-8")[, c("code", "name")]
   country_codes <- rbind(country_codes, region_codes)
   
