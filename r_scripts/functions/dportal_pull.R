@@ -27,7 +27,7 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
   dquery_url <- "https://d-portal.org/q?"
   base_select <- "aid,reporting,reporting_ref,funder_ref,title,slug,day_start,day_end,description"
   
-  #Transactions query url and transaction columns
+  #Activity query url and transaction columns
   acts <- "from=act&orderby=1-&"
   act_select <- "trans_day,trans_usd,trans_gbp,trans_code,trans_country,trans_sector,trans_id"
   act_url <- paste0(dquery_url, acts, "select=", base_select, ",", act_select, "&")
@@ -67,7 +67,7 @@ dportal_pull <- function( reporting_ref="GB-GOV-1"  ,  date_from=NULL  ,  date_t
     
     if(length(acts) > 0){
       
-      per.query <- 5
+      per.query <- 1
       
       acts <- suppressWarnings(split(acts, ceiling(seq(length(acts)/per.query)))) #Pull 'per.query' records each time. Higher numbers (10+) tend to lose records
     
